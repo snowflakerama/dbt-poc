@@ -23,12 +23,9 @@ pipeline {
             steps {
                 script {
                     // Install DBT and any other required dependencies
-                    sh '''
-                    pip install python  
-                    pip install --upgrade pip
-                    pip install dbt-core
-                    pip install dbt-snowflake  
-                    '''
+                    sh 'pip install python'
+                    sh 'pip install --upgrade pip'
+                    sh 'pip install dbt-core pip install dbt-snowflake'  
                 }
             }
         }
