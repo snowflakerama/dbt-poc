@@ -1,39 +1,56 @@
 pipeline {
     agent any
+
     environment {
-        DBT_SNOWFLAKE_USER = credentials('snowflake-user')
-        DBT_SNOWFLAKE_PASSWORD = credentials('snowflake-pass')
-        DBT_PROFILES_DIR = '.'
+        DBT_PROFILE = "my_project"
+        SNOWFLAKE_ACCOUNT = credentials('snowflake_account') // Jenkins credential ID
+        SNOWFLAKE_USER = credentials('snowflake_user')       // Jenkins credential ID
+        SNOWFLAKE_PASSWORD = credentials('snowflake_password') // Jenkins credential ID
     }
+
     stages {
-        stage('Clone Repository') {
+        stage('Checkout') {
             steps {
-                checkout scm
+                // Clone the dbt project repository
+                git branch: 'master', url: 'https://github.com/snowflakerama/dbt-project.git'
             }
         }
-        stage('Setup Environment') {
+
+        stage('Install Dependencies') {
             steps {
-                sh 'python3 -m venv venv'
-                sh './venv/bin/pip install --upgrade pip'
-                //sh './venv/bin/pip install dbt-core
-                sh './venv/bin/pip install dbt-snowflake'
+                // Install dbt
+                sh 'pip install dbt-core dbt-snowflake'
             }
         }
-        stage('Run dbt Commands') {
+
+        stage('Run dbt') {
             steps {
+                // Run dbt commands
                 sh '''
-                ./venv/bin/dbt deps
-                ./venv/bin/dbt seed --target prod
-                ./venv/bin/dbt run --target prod
+                export SNOWFLAKE_ACCOUNT=$SNOWFLAKE_ACCOUNT
+                export SNOWFLAKE_USER=$SNOWFLAKE_USER
+                export SNOWFLAKE_PASSWORD=$SNOWFLAKE_PASSWORD
+
+                dbt deps       # Install dbt packages
+                dbt seed       # Load seed data
+                dbt run        # Build models
+                dbt test       # Run tests
                 '''
-                //./venv/bin/dbt test --target prod
             }
         }
     }
+
     post {
         always {
-            echo "Cleaning up workspace..."
+            // Clean up workspace
             cleanWs()
+        }
+        failure {
+            echo "Build failed!"
+        }
+        success {
+            echo "Build succeeded!"
         }
     }
 }
+
