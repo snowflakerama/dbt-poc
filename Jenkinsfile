@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         DBT_SNOWFLAKE_USER = credentials('snowflake-user')
-        DBT_SNOWFLAKE_PASSWORD = credentials('snowflake-pass')
+        DBT_SNOWFLAKE_PASSWORD = credentials('snowflake-password')
         DBT_PROFILES_DIR = '.'
     }
     stages {
