@@ -1,0 +1,13 @@
+my_project:
+  target: QA
+  outputs:
+    QA:
+      type: snowflake
+      account: kd54208.ap-south-1.aws
+      user: Snowflakedbtpoc
+      password: Welcome@12345
+      role: ACCOUNTADMIN
+      warehouse: COMPUTE_WH
+      database: COMMEXEC_QA
+      schema: DBT_QA
+      threads: 4
