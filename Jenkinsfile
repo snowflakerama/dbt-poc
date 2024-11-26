@@ -9,7 +9,7 @@ pipeline {
         SNOWFLAKE_WAREHOUSE = 'COMPUTE_WH'
         SNOWFLAKE_DB = 'COMMEXEC_QA'
         SNOWFLAKE_SCHEMA = 'DBT_QA'
-        DBT_PROFILE = 'my_project' // The profile defined in the profiles.yml
+        DBT_PROFILE = '.' // The profile defined in the profiles.yml
     }
 
     stages {
