@@ -2,73 +2,57 @@ pipeline {
     agent any
 
     environment {
-        // Snowflake connection details stored in Jenkins credentials
-        SNOWFLAKE_ACCOUNT = 'kd54208.ap-south-1.aws' // Snowflake account (can be stored securely)
-        SNOWFLAKE_USER = 'Snowflakedbtpoc' // Jenkins credential for Snowflake username
-        SNOWFLAKE_PASSWORD = 'Welcome@12345' // Jenkins credential for Snowflake password
-        SNOWFLAKE_WAREHOUSE = 'COMPUTE_WH'
-        SNOWFLAKE_DB = 'COMMEXEC_QA'
-        SNOWFLAKE_SCHEMA = 'DBT_QA'
-        DBT_PROFILE = '.' // The profile defined in the profiles.yml
+        DBT_PROFILE = "my_project"
+        SNOWFLAKE_ACCOUNT = credentials('snowflake_account') // Jenkins credential ID
+        SNOWFLAKE_USER = credentials('snowflake_user')       // Jenkins credential ID
+        SNOWFLAKE_PASSWORD = credentials('snowflake_password') // Jenkins credential ID
     }
 
     stages {
-        stage('Clone DBT Repository') {
+        stage('Checkout') {
             steps {
-                git 'https://github.com/snowflakerama/dbt-poc.git' // Clone your DBT repo
+                // Clone the dbt project repository
+                git branch: 'master', url: 'https://github.com/snowflakerama/dbt-project.git'
             }
         }
 
-        stage('Install DBT and Dependencies') {
+        stage('Install Dependencies') {
             steps {
-                script {
-                    // Install DBT and any other required dependencies
-                    sh 'pip install python'
-                    sh 'pip install --upgrade pip'
-                    sh 'pip install dbt-core pip install dbt-snowflake'  
-                }
+                // Install dbt
+                sh 'pip install dbt-core dbt-snowflake'
             }
         }
-                stage('Run DBT Models') {
+
+        stage('Run dbt') {
             steps {
-                script {
-                    // Set Snowflake credentials as environment variables for DBT run
-                    withEnv([
-                        "SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}",
-                        "SNOWFLAKE_USER=${SNOWFLAKE_USER}",
-                        "SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}",
-                        "SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}",
-                        "SNOWFLAKE_DB=${SNOWFLAKE_DB}",
-                        "SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA}"
-                    ]) {
-                        // Run DBT models (this will apply transformations in your Snowflake warehouse)
-                        sh 'dbt run --profiles-dir . --target QA'  // Make sure to provide the correct profile target
-                    }
-                }
-            }
-        }
-                stage('Run DBT Tests') {
-            steps {
-                script {
-                    // Run DBT tests (to validate the integrity of data)
-                    sh 'dbt test --profiles-dir . --target QA'
-                }
+                // Run dbt commands
+                sh '''
+                export SNOWFLAKE_ACCOUNT=$SNOWFLAKE_ACCOUNT
+                export SNOWFLAKE_USER=$SNOWFLAKE_USER
+                export SNOWFLAKE_PASSWORD=$SNOWFLAKE_PASSWORD
+
+                dbt deps       # Install dbt packages
+                dbt seed       # Load seed data
+                dbt run        # Build models
+                dbt test       # Run tests
+                '''
             }
         }
     }
 
     post {
         always {
-            echo "Cleaning up workspace..."
+            // Clean up workspace
             cleanWs()
         }
-                success {
-            echo 'DBT pipeline run completed successfully.'
-        }
-
         failure {
-            echo 'DBT pipeline run failed.'
+            echo "Build failed!"
+        }
+        success {
+            echo "Build succeeded!"
         }
     }
 }
+
+
    
