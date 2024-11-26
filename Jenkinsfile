@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DBT_PROFILE = "my_project"
+        DBT_PROFILE = "."
         SNOWFLAKE_ACCOUNT = credentials('snowflake_account') // Jenkins credential ID
         SNOWFLAKE_USER = credentials('snowflake_user')       // Jenkins credential ID
         SNOWFLAKE_PASSWORD = credentials('snowflake_password') // Jenkins credential ID
