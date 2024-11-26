@@ -6,11 +6,12 @@ pipeline {
         DBT_PROFILES_DIR = '.'
     }
     stages {
-        stage('Clone Repository') {
+        stage('Clone DBT Repository') {
             steps {
-                checkout scm
+                git 'https://github.com/snowflakerama/dbt-poc.git' // Clone your DBT repo
             }
         }
+        
         stage('Setup Environment') {
             steps {
                 sh 'python3 -m venv venv'
